@@ -607,7 +607,7 @@ def infer(config: InferenceConfig):
             )
 
             # Write video
-            with imageio.get_writer(output_filename, fps=fps) as video:
+            with imageio.get_writer(output_filename, fps=fps, codec="libx264") as video:
                 for frame in video_np:
                     video.append_data(frame)
 
