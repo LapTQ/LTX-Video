@@ -310,7 +310,7 @@ class InferenceConfig:
         metadata={"help": "Path to the pipeline config file"},
     )
     seed: int = field(
-        default=171198, metadata={"help": "Random seed for the inference"}
+        default=None, metadata={"help": "Random seed for the inference"}
     )
     height: int = field(
         default=704, metadata={"help": "Height of the output video frames"}
@@ -421,7 +421,8 @@ def infer(config: InferenceConfig):
                 f"All conditioning start frames must be between 0 and {config.num_frames-1}"
             )
 
-    seed_everething(config.seed)
+    if config.seed is not None:
+        seed_everething(config.seed)
     if config.offload_to_cpu and not torch.cuda.is_available():
         logger.warning(
             "offload_to_cpu is set to True, but offloading will not occur since the model is already running on CPU."
@@ -544,7 +545,9 @@ def infer(config: InferenceConfig):
         "negative_prompt_attention_mask": None,
     }
 
-    generator = torch.Generator(device=device).manual_seed(config.seed)
+    generator = torch.Generator(device=device)
+    if config.seed is not None:
+        generator = generator.manual_seed(config.seed)
 
     images = pipeline(
         **pipeline_config,
@@ -607,7 +610,7 @@ def infer(config: InferenceConfig):
             )
 
             # Write video
-            with imageio.get_writer(output_filename, fps=fps, codec="libx264") as video:
+            with imageio.get_writer(output_filename, fps=fps) as video:
                 for frame in video_np:
                     video.append_data(frame)
 
